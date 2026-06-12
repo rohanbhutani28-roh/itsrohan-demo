@@ -1,0 +1,41 @@
+steps:
+  # Step 1: Build Docker image tagged with commit SHA
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args:
+      - build
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/its-repo/its-app:$SHORT_SHA
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/its-repo/its-app:latest
+      - .
+
+  # Step 2: Push both tags to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push
+    args:
+      - push
+      - --all-tags
+      - us-central1-docker.pkg.dev/$PROJECT_ID/its-repo/its-app
+
+  # Step 3: Print build info
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Summary
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo "=== Build Complete ==="
+        echo "Commit: $SHORT_SHA"
+        echo "Branch: $BRANCH_NAME"
+        echo "Repo:   $REPO_NAME"
+        echo "Image:  us-central1-docker.pkg.dev/$PROJECT_ID/its-repo/its-app:$SHORT_SHA"
+
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/its-repo/its-app:$SHORT_SHA
+  - us-central1-docker.pkg.dev/$PROJECT_ID/its-repo/its-app:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+
